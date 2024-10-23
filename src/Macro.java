@@ -6,12 +6,14 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 public class Macro {
 
-    public static void main(String[] args) throws Exception {
+    private final static ExecutorService executor = Executors.newSingleThreadExecutor(); // 백그라운드 스레드 풀
 
-        Macro macro = new Macro();
+    public static void main(String[] args) throws Exception {
 
         JFrame frame = new JFrame("매크로 v1"); // 프레임
         MacroArgs mArgs = new MacroArgs();  // 설정 값 객체
@@ -57,7 +59,7 @@ public class Macro {
         frame.getContentPane().add(accessInput11);
 
         /* 초 1-2-1 */
-        JLabel accessLbl121 = new JLabel("초");
+        JLabel accessLbl121 = new JLabel("번");
         accessLbl121.setBounds(270, 49, 15, 30);
         accessLbl121.setFont(new Font("맑은 고딕", Font.BOLD, 10));
         accessLbl121.setForeground(Color.RED);
@@ -113,7 +115,7 @@ public class Macro {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
             @Override
             public boolean dispatchKeyEvent(KeyEvent e) {
-                if(e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F6) {
+                if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F6) {
                     Point mousePos = MouseInfo.getPointerInfo().getLocation();
 
                     int mouseX = mousePos.x;
@@ -161,7 +163,7 @@ public class Macro {
         frame.getContentPane().add(accessInput21);
 
         /* 초 2-2-1 */
-        JLabel accessLbl221 = new JLabel("초");
+        JLabel accessLbl221 = new JLabel("번");
         accessLbl221.setBounds(270, 182, 15, 30);
         accessLbl221.setFont(new Font("맑은 고딕", Font.BOLD, 10));
         accessLbl221.setForeground(Color.RED);
@@ -217,7 +219,7 @@ public class Macro {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
             @Override
             public boolean dispatchKeyEvent(KeyEvent e) {
-                if(e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F7) {
+                if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F7) {
                     Point mousePos = MouseInfo.getPointerInfo().getLocation();
 
                     int mouseX = mousePos.x;
@@ -236,27 +238,27 @@ public class Macro {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
             @Override
             public boolean dispatchKeyEvent(KeyEvent e) {
-                if(e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F8) {
+                if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F8) {
                     System.out.println("단축키 버튼 눌림\n");
 
-                    System.out.println("첫번째 좌표: " + mArgs.getFirstMouseX() + "," + mArgs.getFirstMouseY());
+                    /*System.out.println("첫번째 좌표: " + mArgs.getFirstMouseX() + "," + mArgs.getFirstMouseY());
                     System.out.println("첫번째 클릭 횟수 시간: " + mArgs.getFirstClickCnt());
                     System.out.println("첫번째 클릭 딜레이 시간: " + mArgs.getFirstDelayTime());
                     System.out.println("두번째 좌표: " + mArgs.getSecondMouseX() + "," + mArgs.getSecondMouseY());
                     System.out.println("두번째 클릭 횟수: " + mArgs.getSecondClickCnt());
-                    System.out.println("두번째 클릭 딜레이 시간: " + mArgs.getSecondDelayTime());
+                    System.out.println("두번째 클릭 딜레이 시간: " + mArgs.getSecondDelayTime());*/
 
                     // 매크로 시작
-                    try {
-                        if(!mArgs.getRunning()) {
+                    executor.submit(() -> {
+                        try {
                             mArgs.setRunning(true);
-                            macro.activeMacro(mArgs);
-                        } else {
-                            mArgs.setRunning(false);
+                            activeMacro(mArgs);
+                            System.out.println("매크로 시작");
+                        } catch (Exception ex) {
+                            throw new RuntimeException(ex);
                         }
-                    } catch (Exception ex) {
-                        throw new RuntimeException(ex);
-                    }
+                    });
+
                 }
                 return false;
             }
@@ -266,28 +268,37 @@ public class Macro {
         KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventDispatcher(new KeyEventDispatcher() {
             @Override
             public boolean dispatchKeyEvent(KeyEvent e) {
-                if(e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F9) {
-                    System.out.println("멈춤 버튼 눌림\n");
+                if (e.getID() == KeyEvent.KEY_PRESSED && e.getKeyCode() == KeyEvent.VK_F9) {
 
-                    // 매크로 멈춤
-                    mArgs.setRunning(false);
-                  
+                    // 매크로 시작
+                    executor.submit(() -> {
+                        try {
+                            mArgs.setRunning(false);
+                            executor.shutdown();
+                        } catch (Exception ex) {
+                            throw new RuntimeException(ex);
+                        }
+                    });
+
+                    System.out.println("매크로 동작 멈춤 \n");
+
                 }
                 return false;
             }
         });
         frame.setVisible(true);
+
     }
 
     /* 매크로 동작 */
-    private void activeMacro(MacroArgs mArgs) throws Exception {
-    
+    private static void activeMacro(MacroArgs mArgs) throws Exception {
+
         Robot robot = new Robot();  // 매크로 기능
 
-        System.out.println("상태: " + mArgs.getRunning());
+        System.out.println("상태 확인: " + mArgs.getRunning());
 
         while (mArgs.getRunning()) {
-            System.out.println("첫번째 동작 시작");
+            System.out.println("첫번째 동작 시작 \n");
 
             // 첫번째 좌표로 움직이기
             robot.mouseMove(mArgs.getFirstMouseX(), mArgs.getFirstMouseY());
@@ -299,7 +310,7 @@ public class Macro {
                 robot.mouseRelease(InputEvent.BUTTON1_DOWN_MASK); // 클릭 해제
                 Thread.sleep(mArgs.getFirstDelayTime() * 1000); // 초를 밀리초로 변환
             }
-            System.out.println("첫번째 동작 종료");
+            System.out.println("첫번째 동작 종료 \n");
 
             // 첫번째와 두번째 사이의 시간 간격 설정
             mArgs.setAllDelayTime(1);
@@ -309,7 +320,7 @@ public class Macro {
             robot.mouseMove(mArgs.getSecondMouseX(), mArgs.getSecondMouseY());
             System.out.println("두번째로 움직임: " + mArgs.getSecondMouseX() + "," + mArgs.getSecondMouseY());
 
-            System.out.println("두번째 동작 시작");
+            System.out.println("두번째 동작 시작 \n");
             // 두번째 클릭 회수 만큼 동작
             for (int i = 0; i < mArgs.getSecondClickCnt(); i++) {
                 robot.mousePress(InputEvent.BUTTON1_DOWN_MASK);
@@ -318,7 +329,7 @@ public class Macro {
                 Thread.sleep(mArgs.getSecondDelayTime() * 1000);
             }
 
-            System.out.println("두번째 동작 종료");
+            System.out.println("두번째 동작 종료 \n");
 
             Thread.sleep(mArgs.getAllDelayTime() * 1000);
         }
