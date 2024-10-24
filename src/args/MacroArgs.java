@@ -2,7 +2,7 @@ package args;
 
 public class MacroArgs {
 
-    private Integer allDelayTime = 60; // 첫번째 두번째 동작 후 재 반복까지의 딜레이 시간
+    private Integer allDelayTime = 10; // 첫번째 두번째 동작 후 재 반복까지의 딜레이 시간
 
     private Integer firstMouseX = 0; // 첫번째 마우스 좌표 x
     private Integer firstMouseY = 0; // 첫번째 마우스 좌표 y
@@ -13,8 +13,6 @@ public class MacroArgs {
     private Integer secondMouseY = 0; // 두번째 마우스 좌표 y
     private Integer secondDelayTime = 0; // 두번째 마우스 클릭 딜레이 시간
     private Integer secondClickCnt = 0; // 두번째 마우스 클릭 횟수
-
-    private boolean running = false; // 실행상태
 
     public MacroArgs() {
     }
@@ -91,13 +89,6 @@ public class MacroArgs {
         this.secondClickCnt = secondClickCnt;
     }
 
-    public void setRunning(boolean running) {
-        this.running = running;
-    }
-
-    public boolean getRunning() {
-        return running;
-    }
 
     @Override
     public String toString() {
